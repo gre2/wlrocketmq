@@ -18,11 +18,6 @@ package org.apache.rocketmq.namesrv;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -38,6 +33,12 @@ import org.apache.rocketmq.srvutil.ServerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class NamesrvStartup {
     public static Properties properties = null;
     public static CommandLine commandLine = null;
@@ -51,6 +52,7 @@ public class NamesrvStartup {
         //todo 把key设置成value，系统的全局变量，任何地方都可以用System.getProperty("变量");
         System.setProperty(RemotingCommand.REMOTING_VERSION_KEY, Integer.toString(MQVersion.CURRENT_VERSION));
 
+        //netty接收，发送缓冲区大小
         if (null == System.getProperty(NettySystemConfig.COM_ROCKETMQ_REMOTING_SOCKET_SNDBUF_SIZE)) {
             NettySystemConfig.socketSndbufSize = 4096;
         }
@@ -98,7 +100,9 @@ public class NamesrvStartup {
                 System.exit(0);
             }
 
+            //commandLine2Properties()方法中将参数全名和属性值转换成Properties
             MixAll.properties2Object(ServerUtil.commandLine2Properties(commandLine), namesrvConfig);
+
             //todo 设置rocketmq项目位置
             namesrvConfig.setRocketmqHome("/Users/wulei/ideaProject/incubator-rocketmq");
             if (null == namesrvConfig.getRocketmqHome()) {
@@ -117,10 +121,12 @@ public class NamesrvStartup {
 
             MixAll.printObjectProperties(log, namesrvConfig);
             MixAll.printObjectProperties(log, nettyServerConfig);
+
             //根据启动属性创建NamesrvController实例，并初始化该实例，NameServerController实例为NameServer核心控制器。
             final NamesrvController controller = new NamesrvController(namesrvConfig, nettyServerConfig);
 
             // remember all configs to prevent discard
+            //将全局的properties赋值给configuration的properties
             controller.getConfiguration().registerConfig(properties);
 
             boolean initResult = controller.initialize();

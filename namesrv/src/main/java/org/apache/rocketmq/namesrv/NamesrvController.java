@@ -72,6 +72,7 @@ public class NamesrvController {
 
     public boolean initialize() {
 
+        //载配置文件，读取到内存的configTable中
         this.kvConfigManager.load();
 
         //创建NettyServer网络处理对象
