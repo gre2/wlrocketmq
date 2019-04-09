@@ -134,6 +134,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
 
     @Override
     public void start() {
+        // 构造执行编码相关任务的线程池，默认线程数为8
         this.defaultEventExecutorGroup = new DefaultEventExecutorGroup(
             nettyServerConfig.getServerWorkerThreads(),
             new ThreadFactory() {
@@ -146,8 +147,9 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
                 }
             });
 
-        ServerBootstrap childHandler =
-            this.serverBootstrap.group(this.eventLoopGroupBoss, this.eventLoopGroupSelector).channel(NioServerSocketChannel.class)
+        ServerBootstrap childHandler = this.serverBootstrap
+                .group(this.eventLoopGroupBoss, this.eventLoopGroupSelector)
+                .channel(NioServerSocketChannel.class)
                 .option(ChannelOption.SO_BACKLOG, 1024)
                 .option(ChannelOption.SO_REUSEADDR, true)
                 .option(ChannelOption.SO_KEEPALIVE, false)
@@ -164,7 +166,8 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
                             new NettyDecoder(),
                             new IdleStateHandler(0, 0, nettyServerConfig.getServerChannelMaxIdleTimeSeconds()),
                             new NettyConnetManageHandler(),
-                            new NettyServerHandler());//todo 请求响应code处理类
+                                //todo 请求响应code处理类
+                                new NettyServerHandler());
                     }
                 });
 
