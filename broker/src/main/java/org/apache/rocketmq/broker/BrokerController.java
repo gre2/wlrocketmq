@@ -246,7 +246,7 @@ public class BrokerController {
             // TODO remove in future
             final long initialDelay = UtilAll.computNextMorningTimeMillis() - System.currentTimeMillis();
             final long period = 1000 * 60 * 60 * 24;
-            //记录broker的状态
+            //
             this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
                 @Override
                 public void run() {
@@ -631,9 +631,10 @@ public class BrokerController {
             this.filterServerManager.start();
         }
 
+        //强制注册
         this.registerBrokerAll(true, false);
 
-        //Broker端心跳包发送
+        //定时注册broker到nameserv
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -658,6 +659,7 @@ public class BrokerController {
     public synchronized void registerBrokerAll(final boolean checkOrderConfig, boolean oneway) {
         TopicConfigSerializeWrapper topicConfigWrapper = this.getTopicConfigManager().buildTopicConfigSerializeWrapper();
 
+        //每次注册的时候都会 同步Broker最新的读写权限到每一个topic中(TopicConfig对象中)，放到TopicConfigTable中
         if (!PermName.isWriteable(this.getBrokerConfig().getBrokerPermission())
             || !PermName.isReadable(this.getBrokerConfig().getBrokerPermission())) {
             ConcurrentHashMap<String, TopicConfig> topicConfigTable = new ConcurrentHashMap<String, TopicConfig>();
@@ -688,6 +690,7 @@ public class BrokerController {
 
             this.slaveSynchronize.setMasterAddr(registerBrokerResult.getMasterAddr());
 
+            // 检查 topic config 的顺序消息配置
             if (checkOrderConfig) {
                 this.getTopicConfigManager().updateOrderTopicConfig(registerBrokerResult.getKvTable());
             }
